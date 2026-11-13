@@ -1,0 +1,162 @@
+{
+"seccion": "IEI-C2", 
+"modulo": 2, 
+"grupo": "G03", 
+"prototipo": "https://adopciones-tr.onrender.com", 
+"repositorio": "https://github.com/usuario/tr-adopciones", 
+"taiga": "https://tree.taiga.io/project/ti3043-iei-c2-m3", 
+"integrantes": [ 
+  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
+  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
+  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
+  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" }, 
+  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" } 
+
+], 
+"historias": [ 
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  },
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/operativos/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  },
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } 
+  ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,{ 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  },
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-01", 
+    "titulo": "Postular a la adopción de un animal", 
+    "responsable": "usuario-gh", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "vecino", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } 
+] 
+} 
