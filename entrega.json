@@ -10,7 +10,7 @@
   { "nombre": "Elian Tapia", "github": "ElianT142", "taiga": "ElianT", "rol": "analista" },
   { "nombre": "Jorge Vallejos Torrejón", "github": "JorgeVallejos14", "taiga": "JorgeVallejos14", "rol": "Analista" },
   { "nombre": "Tamara Tarque Morales", "github": "TamaraToT", "taiga": "Tamara_ToT", "rol": "Responsable de Calidad" }, 
-  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" } 
+  { "nombre": "Cristian berrios", "github": "CrisitanBe", "taiga": "@Cristianb", "rol": "Scrum master" } 
 
 ], 
 "historias": [ 
@@ -27,9 +27,9 @@
     } 
   },
   { 
-    "id": "HU-02", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+"id": "HU-02", 
+    "titulo": "Como vecino, quiero que al realizar una solicitud de inscripción a un operativo con límite de cupos alcanzados se registe mi solicitud en la lista de espera, para lograr que mi solicitud no se pierda.", 
+    "responsable": "CrisitanBe", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/operativos/postulaciones", 
@@ -65,12 +65,12 @@
   } ,
   { 
     "id": "HU-05", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+    "titulo": "Como funcionario, quiero que el sistema me restrinja las acciones según mi rol y el del usuario, para asegurar que solo los usuarios autorizados realicen acciones de confirmación, gestión y supervisión.", 
+    "responsable": "Sebas07715, ElianT142, JorgeVallejos14, TamaraToT, CrisitanBe", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
+      "perfil": "vecino, funcionario",
       "cuerpo": { "animalId": "SIM-000001" }, 
       "esperado": 201 
     } 
@@ -88,24 +88,24 @@
     } 
   } ,
   { 
-    "id": "HU-07", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+"id": "HU-07", 
+    "titulo": "Como vecino quiero poder registrarme en un operativo para atender a mi mascota.", 
+    "responsable": "CrisitanBe", 
     "verificacion": { 
       "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
+      "ruta": "/api/operativos/postulaciones", 
       "perfil": "vecino", 
       "cuerpo": { "animalId": "SIM-000001" }, 
       "esperado": 201 
     } 
   } ,
   { 
-    "id": "HU-08", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+"id": "HU-08", 
+    "titulo": "Como vecino quiero poder cancelar una inscripción activa, para cumplir el acuerdo de políticas de plazo.", 
+    "responsable": "CrisitanBe", 
     "verificacion": { 
       "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
+      "ruta": "/api/operativos/postulaciones", 
       "perfil": "vecino", 
       "cuerpo": { "animalId": "SIM-000001" }, 
       "esperado": 201 
