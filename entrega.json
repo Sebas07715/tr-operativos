@@ -9,7 +9,7 @@
   { "nombre": "Sebastián Brito López", "github": "Sebas07715", "taiga": "Sebastian_Brito", "rol": "Arquitecto" },
   { "nombre": "Elian Tapia", "github": "ElianT142", "taiga": "ElianT", "rol": "analista" },
   { "nombre": "Jorge Vallejos Torrejón", "github": "JorgeVallejos14", "taiga": "JorgeVallejos14", "rol": "Analista" },
-  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" }, 
+  { "nombre": "Tamara Tarque Morales", "github": "TamaraToT", "taiga": "Tamara_ToT", "rol": "Responsable de Calidad" }, 
   { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" } 
 
 ], 
@@ -40,8 +40,8 @@
   },
   { 
     "id": "HU-03", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+    "titulo": "Como vecino, quiero recibir notificaciones, para ser notificado por el estado de mi cupo", 
+    "responsable": "Tamara_ToT", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/adopciones/postulaciones", 
@@ -136,8 +136,8 @@
   } ,
   { 
     "id": "HU-11", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+    "titulo": "Como funcionario, quiero que el sistema verifique si una mascota ya esta identificada mediante la API del módulo 1, para evitar realizar una nueva identificación innecesaria", 
+    "responsable": "Tamara_ToT", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/adopciones/postulaciones", 
