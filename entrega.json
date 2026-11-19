@@ -8,7 +8,7 @@
 "integrantes": [ 
   { "nombre": "Sebastián Brito López", "github": "Sebas07715", "taiga": "Sebastian_Brito", "rol": "Arquitecto" },
   { "nombre": "Elian Tapia", "github": "ElianT142", "taiga": "ElianT", "rol": "analista" },
-  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
+  { "nombre": "Jorge Vallejos Torrejón", "github": "JorgeVallejos14", "taiga": "JorgeVallejos14", "rol": "Analista" },
   { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" }, 
   { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" } 
 
@@ -53,12 +53,12 @@
   ,
   { 
     "id": "HU-04", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+    "titulo": "Como funcionario, quiero que el sistema me permita gestionar los cupos y confirmar asistencia, para que el veterinario registre resultados clínicos de la atención.", 
+    "responsable": "JorgeVallejos14", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
+      "perfil": "funcionario", 
       "cuerpo": { "animalId": "SIM-000001" }, 
       "esperado": 201 
     } 
@@ -124,12 +124,12 @@
   },
   { 
     "id": "HU-10", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+    "titulo": "Como veterinario, quiero registrar las observaciones postoperatorias y asignar medicación tras una esterilización, para llevar el control operativo y dar la alta médica al animal.", 
+    "responsable": "JorgeVallejos14", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
+      "perfil": "veterinario", 
       "cuerpo": { "animalId": "SIM-000001" }, 
       "esperado": 201 
     } 
