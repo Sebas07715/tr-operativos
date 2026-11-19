@@ -6,7 +6,7 @@
 "repositorio": "https://github.com/usuario/tr-adopciones", 
 "taiga": "https://tree.taiga.io/project/ti3043-iei-c2-m3", 
 "integrantes": [ 
-  { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
+  { "nombre": "Sebastián Brito López", "github": "Sebas07715", "taiga": "Sebastian_Brito", "rol": "Arquitecto" },
   { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
   { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" },
   { "nombre": "Nombre Apellido", "github": "usuario-gh", "taiga": "usuario-taiga", "rol": "PO" }, 
@@ -27,7 +27,7 @@
     } 
   },
   { 
-    "id": "HU-01", 
+    "id": "HU-02", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -39,7 +39,7 @@
     } 
   },
   { 
-    "id": "HU-01", 
+    "id": "HU-03", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -52,7 +52,7 @@
   } 
   ,
   { 
-    "id": "HU-01", 
+    "id": "HU-04", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -64,7 +64,7 @@
     } 
   } ,
   { 
-    "id": "HU-01", 
+    "id": "HU-05", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -76,7 +76,19 @@
     } 
   } ,
   { 
-    "id": "HU-01", 
+    "id": "HU-06", 
+    "titulo": "Como funcionario, quiero registrar operativos de esterilización y chipeo incluyendo fecha, lugar, cupos, especies y bloques horarios, para organizar y gestionar la atención de las mascotas de la comuna", 
+    "responsable": "Sebas07715", 
+    "verificacion": { 
+      "metodo": "POST", 
+      "ruta": "/api/adopciones/postulaciones", 
+      "perfil": "funcionario", 
+      "cuerpo": { "animalId": "SIM-000001" }, 
+      "esperado": 201 
+    } 
+  } ,
+  { 
+    "id": "HU-07", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -88,19 +100,7 @@
     } 
   } ,
   { 
-    "id": "HU-01", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
-    } 
-  } ,
-  { 
-    "id": "HU-01", 
+    "id": "HU-08", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -111,7 +111,7 @@
       "esperado": 201 
     } 
   } ,{ 
-    "id": "HU-01", 
+    "id": "HU-09", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -123,7 +123,7 @@
     } 
   },
   { 
-    "id": "HU-01", 
+    "id": "HU-10", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -135,7 +135,7 @@
     } 
   } ,
   { 
-    "id": "HU-01", 
+    "id": "HU-11", 
     "titulo": "Postular a la adopción de un animal", 
     "responsable": "usuario-gh", 
     "verificacion": { 
@@ -147,13 +147,13 @@
     } 
   } ,
   { 
-    "id": "HU-01", 
-    "titulo": "Postular a la adopción de un animal", 
-    "responsable": "usuario-gh", 
+    "id": "HU-12", 
+    "titulo": "Como funcionario, quiero registrar cuando una mascota no asiste al operativo, para mantener actualizado el control de asistencia", 
+    "responsable": "Sebas07715", 
     "verificacion": { 
       "metodo": "POST", 
       "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
+      "perfil": "funcionario", 
       "cuerpo": { "animalId": "SIM-000001" }, 
       "esperado": 201 
     } 
