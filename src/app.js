@@ -3,6 +3,7 @@ const cors = require("cors");
 const saludRoutes = require("./routes/salud.routes");
 const operativosRoutes = require("./routes/operativos.routes");
 const { enviarError } = require("./middlewares/validaciones");
+const animalesRoutes = require("./routes/animales.routes");
 
 const app = express();
 
@@ -20,5 +21,7 @@ app.use((err, req, res, next) => {
   console.error(err);
   return enviarError(res, 500, "ERROR_INTERNO", "Error interno del servidor");
 });
+
+app.use("/api/operativos", animalesRoutes);
 
 module.exports = app;
