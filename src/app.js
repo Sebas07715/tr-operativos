@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const saludRoutes = require("./routes/salud.routes");
+const operativosRoutes = require("./routes/operativos.routes");
 const { enviarError } = require("./middlewares/validaciones");
 
 const app = express();
@@ -9,6 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/operativos", saludRoutes);
+app.use("/api/operativos", operativosRoutes);
 
 app.use((req, res) => {
   return enviarError(res, 404, "NO_ENCONTRADO", "Ruta o recurso no encontrado");
