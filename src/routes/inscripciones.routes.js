@@ -5,6 +5,7 @@ const Inscripcion = require("../models/Inscripcion");
 const { requerirPerfil } = require("../middlewares/auth");
 const { validarElegibilidadAnimal } = require("../services/elegibilidadInscripcion");
 const { asignarCupoOEspera } = require("../services/cupoService");
+const { cancelarInscripcion } = require("../services/inscripcionesService");
 const {
   enviarError,
   obtenerPaginacion,
@@ -137,6 +138,35 @@ router.post(
       return res.status(201).json({ id: creadaLocal._id, datos: creadaLocal });
     } catch {
       return enviarError(res, 500, "ERROR_INSCRIBIR", "No se pudo procesar la inscripción");
+    }
+  }
+);
+
+// HU-08: Cancelar inscripción (vecino/comunitario dueño o funcionario/admin)
+router.patch(
+  "/:inscId/cancelar",
+  requerirPerfil(["vecino", "comunitario", "funcionario", "admin"]),
+  async (req, res) => {
+    try {
+      const resultado = await cancelarInscripcion({
+        dbActiva: dbConectada(),
+        operativoId: req.params.id,
+        inscId: req.params.inscId,
+        usuario: req.usuario,
+        inscripcionesMemoria
+      });
+
+      if (!resultado.ok) {
+        return enviarError(res, resultado.status, resultado.codigo, resultado.mensaje);
+      }
+
+      return res.status(200).json({
+        id: resultado.datos._id,
+        datos: resultado.datos,
+        promovida: resultado.promovida
+      });
+    } catch {
+      return enviarError(res, 500, "ERROR_CANCELAR_INSCRIPCION", "No se pudo cancelar la inscripción");
     }
   }
 );
