@@ -1,15 +1,35 @@
-// HU-12 — Ruta para marcar inasistencia — Responsable: Sebastián Brito
-const router = require("express").Router();
-const { permitirPerfiles } = require("../middlewares/auth");
-const { asincrono } = require("../middlewares/validaciones");
+// Ruta de registro de inasistencias — Responsable: Elian Tapia
+const express = require("express");
+const { requerirPerfil } = require("../middlewares/auth");
 const { registrarInasistencia } = require("../services/inasistenciasService");
+const { enviarError } = require("../middlewares/validaciones");
 
+const router = express.Router({ mergeParams: true });
+
+// Marcar inasistencia de una inscripción (funcionario o veterinario)
 router.patch(
-  "/:operativoId/inscripciones/:inscripcionId/inasistencia",
-  permitirPerfiles("funcionario", "veterinario"),
-  asincrono(async (req, res) => {
-    res.json(await registrarInasistencia(req.params.operativoId, req.params.inscripcionId));
-  })
+  "/:inscId/inasistencia",
+  requerirPerfil(["funcionario", "veterinario"]),
+  async (req, res) => {
+    try {
+      const resultado = await registrarInasistencia({
+        operativoId: req.params.id,
+        inscId: req.params.inscId
+      });
+
+      if (!resultado.ok) {
+        return enviarError(res, resultado.status, resultado.codigo, resultado.mensaje);
+      }
+
+      return res.status(200).json({
+        id: resultado.datos._id,
+        datos: resultado.datos,
+        bloqueo: resultado.bloqueo
+      });
+    } catch {
+      return enviarError(res, 500, "ERROR_INASISTENCIA", "No se pudo registrar la inasistencia");
+    }
+  }
 );
 
 module.exports = router;
