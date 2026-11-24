@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Módulo 2 · Operativos de esterilización y chipeo</title>
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <header>
+    <h1>Operativos de esterilización y chipeo</h1>
+    <span id="quien"></span>
+    <button id="salir" type="button" hidden>Salir</button>
+  </header>
+
+  <p id="mensaje" role="status"></p>
+
+  <section id="login">
+    <h2>Iniciar sesión</h2>
+    <form id="formLogin">
+      <input id="rut" placeholder="RUT (ej: 11111111-1)" required />
+      <input id="clave" type="password" placeholder="Clave" required />
+      <button type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <section>
+      <h2>Operativos disponibles</h2>
+      <div data-perfiles="vecino comunitario funcionario">
+        <input id="animalId" placeholder="ID animal (ej: SIM-000001)" />
+        <select id="tipo">
+          <option value="esterilizacion">Esterilización</option>
+          <option value="chipeo">Chipeo</option>
+          <option value="ambos">Ambos</option>
+        </select>
+      </div>
+      <ul id="listaOperativos"></ul>
+    </section>
+
+    <section data-perfiles="vecino comunitario">
+      <h2>Mis inscripciones</h2>
+      <ul id="listaMias"></ul>
+    </section>
+
+    <section>
+      <h2>Mis notificaciones</h2>
+      <ul id="listaNotificaciones"></ul>
+    </section>
+
+    <section data-perfiles="funcionario">
+      <h2>Crear operativo</h2>
+      <form id="formOperativo">
+        <select id="sedeId" required></select>
+        <select id="especies" multiple size="3" required></select>
+        <label>Inicio <input id="fechaInicio" type="datetime-local" required /></label>
+        <label>Término <input id="fechaTermino" type="datetime-local" required /></label>
+        <input id="cupos" type="number" min="1" max="2500" placeholder="Cupos" required />
+        <input id="bloques" placeholder="Bloques (ej: 09:00-12:00,14:00-17:00)" />
+        <button type="submit">Crear</button>
+      </form>
+    </section>
+
+    <section data-perfiles="funcionario veterinario jefatura admin">
+      <h2 id="tituloInscripciones">Inscripciones del operativo</h2>
+      <ul id="listaInscripciones"></ul>
+    </section>
+
+    <section data-perfiles="veterinario">
+      <h2>Registrar procedimiento</h2>
+      <form id="formProcedimiento">
+        <input id="procInscripcion" placeholder="Inscripción (ej: INS-0001)" required />
+        <select id="procTipo">
+          <option value="esterilizacion">Esterilización</option>
+          <option value="chipeo">Chipeo</option>
+          <option value="control_postoperatorio">Control postoperatorio</option>
+        </select>
+        <input id="procPeso" type="number" step="0.1" placeholder="Peso (kg)" />
+        <input id="procAnestesia" placeholder="Tipo de anestesia" />
+        <input id="procChip" placeholder="Chip (15 dígitos)" />
+        <input id="procUbicacion" placeholder="Ubicación del chip" />
+        <input id="procObs" placeholder="Observaciones" />
+        <label><input id="procAlta" type="checkbox" /> Alta médica</label>
+        <button type="submit">Registrar</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
