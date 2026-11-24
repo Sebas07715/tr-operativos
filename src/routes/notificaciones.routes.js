@@ -1,4 +1,4 @@
-// HU-03 — Rutas de notificaciones — Responsable: Tamara Tarque
+// HU-03 — Rutas de notificaciones — Como vecino, quiero recibir notificaciones, para ser notificado por el estado de mi cupo Responsable: Tamara Tarque
 const express = require("express");
 const { requerirPerfil } = require("../middlewares/auth");
 const {

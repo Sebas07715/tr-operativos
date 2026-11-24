@@ -1,4 +1,4 @@
-// HU-03 — Modelo de notificación — Responsable: Tamara Tarque
+// HU-03 — Modelo de notificación - Como vecino, quiero recibir notificaciones, para ser notificado por el estado de mi cupo Responsable: Tamara Tarque
 const mongoose = require("mongoose");
 
 const notificacionSchema = new mongoose.Schema(
