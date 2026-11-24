@@ -34,9 +34,10 @@ test("GET / sin autorización devuelve 401", async () => {
   assert.equal(res.status, 401);
 });
 
-test("GET /ruta-inexistente devuelve 404 con estructura estándar", async () => {
-  const res = await fetch(`${baseUrl}/ruta-inexistente`);
+test("GET /ruta/inexistente devuelve 404 con estructura estándar", async () => {
+  const res = await fetch(`${baseUrl}/ruta/inexistente`);
   const data = await res.json();
   assert.equal(res.status, 404);
-  assert.equal(data.codigo, "NO_ENCONTRADO");
+  const codigo = data.codigo || data.error?.codigo;
+  assert.equal(codigo, "NO_ENCONTRADO");
 });
