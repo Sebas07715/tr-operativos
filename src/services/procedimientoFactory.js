@@ -1,96 +1,126 @@
-class ProcedimientoBase {
-  constructor({ operativoId, inscripcionId, animalId, veterinario, observaciones }) {
-    this.operativoId = operativoId;
-    this.inscripcionId = inscripcionId;
-    this.animalId = animalId;
-    this.asistio = true;
-    this.veterinarioRut = veterinario.rut;
-    this.veterinarioNombre = veterinario.nombre || "";
-    this.observaciones = observaciones ? String(observaciones).trim() : "";
-    this.fechaAtencion = new Date().toISOString();
+// HU-10 (fábrica de procedimientos) — Responsable: Jorge Vallejos
+const { datosInvalidos, esTexto } = require("../middlewares/validaciones");
+
+class Procedimiento {
+  constructor(datos) {
+    if (new.target === Procedimiento) {
+      throw new Error("Procedimiento es una clase abstracta");
+    }
+    this.datos = datos || {};
   }
 
-  construirRegistro() {
-    throw new Error("Debe implementar construirRegistro()");
-  }
-}
-
-class EsterilizacionProcedimiento extends ProcedimientoBase {
-  constructor(params) {
-    super(params);
-    this.tipo = "esterilizacion";
-    this.tecnica = params.datosClinicos?.tecnica || "ovariohisterectomia / orquiectomia";
-    this.medicacionPostoperatoria = params.datosClinicos?.medicacionPostoperatoria || "";
+  validar() {
+    throw new Error("Cada procedimiento debe implementar validar()");
   }
 
-  construirRegistro() {
+  detalle() {
+    throw new Error("Cada procedimiento debe implementar detalle()");
+  }
+
+  registrarProcedimiento(veterinarioRut) {
     return {
-      operativoId: this.operativoId,
-      inscripcionId: this.inscripcionId,
-      animalId: this.animalId,
       tipo: this.tipo,
-      asistio: this.asistio,
-      veterinarioRut: this.veterinarioRut,
-      veterinarioNombre: this.veterinarioNombre,
-      observaciones: this.observaciones,
-      detalleClinico: {
-        tecnica: String(this.tecnica).trim(),
-        medicacionPostoperatoria: String(this.medicacionPostoperatoria).trim()
-      },
-      fechaAtencion: this.fechaAtencion
+      fecha: new Date(),
+      veterinarioRut,
+      detalle: this.detalle()
     };
   }
 }
 
-class ChipeoProcedimiento extends ProcedimientoBase {
-  constructor(params) {
-    super(params);
-    this.tipo = "chipeo";
-    const chip = String(params.datosClinicos?.numeroMicrochip || "").trim();
-    if (!/^\d{15}$/.test(chip)) {
-      const err = new Error("Para chipeo debe ingresar un numeroMicrochip válido de 15 dígitos");
-      err.status = 400;
-      err.codigo = "MICROCHIP_INVALIDO";
-      throw err;
+class Esterilizacion extends Procedimiento {
+  tipo = "esterilizacion";
+
+  validar() {
+    const { pesoAnimal, tipoAnestesia, medicacion } = this.datos;
+    if (typeof pesoAnimal !== "number" || Number.isNaN(pesoAnimal) || pesoAnimal <= 0 || pesoAnimal > 100) {
+      throw datosInvalidos("pesoAnimal debe ser un número entre 0 y 100 (kg)");
     }
-    this.numeroMicrochip = chip;
-    this.zonaImplante = params.datosClinicos?.zonaImplante || "interescapular";
+    if (!esTexto(tipoAnestesia, 2, 60)) {
+      throw datosInvalidos("tipoAnestesia es obligatorio");
+    }
+    if (medicacion !== undefined && medicacion !== null && medicacion !== "" && !esTexto(medicacion, 1, 200)) {
+      throw datosInvalidos("medicacion debe ser texto de hasta 200 caracteres");
+    }
   }
 
-  construirRegistro() {
+  detalle() {
+    const { pesoAnimal, tipoAnestesia, medicacion } = this.datos;
     return {
-      operativoId: this.operativoId,
-      inscripcionId: this.inscripcionId,
-      animalId: this.animalId,
-      tipo: this.tipo,
-      asistio: this.asistio,
-      veterinarioRut: this.veterinarioRut,
-      veterinarioNombre: this.veterinarioNombre,
-      observaciones: this.observaciones,
-      detalleClinico: {
-        numeroMicrochip: this.numeroMicrochip,
-        zonaImplante: String(this.zonaImplante).trim()
-      },
-      fechaAtencion: this.fechaAtencion
+      pesoAnimal,
+      tipoAnestesia: String(tipoAnestesia).trim(),
+      medicacion: medicacion ? String(medicacion).trim() : null
+    };
+  }
+}
+
+class Chipeo extends Procedimiento {
+  tipo = "chipeo";
+
+  validar() {
+    const { numeroChip, ubicacionChip } = this.datos;
+    if (typeof numeroChip !== "string" || !/^\d{15}$/.test(numeroChip)) {
+      throw datosInvalidos("numeroChip debe tener exactamente 15 dígitos");
+    }
+    if (!esTexto(ubicacionChip, 2, 60)) {
+      throw datosInvalidos("ubicacionChip es obligatorio");
+    }
+  }
+
+  detalle() {
+    const { numeroChip, ubicacionChip } = this.datos;
+    return {
+      numeroChip: String(numeroChip).trim(),
+      ubicacionChip: String(ubicacionChip).trim()
+    };
+  }
+}
+
+class ControlPostoperatorio extends Procedimiento {
+  tipo = "control_postoperatorio";
+
+  validar() {
+    const { observaciones, altaMedica } = this.datos;
+    if (!esTexto(observaciones, 3, 500)) {
+      throw datosInvalidos("observaciones es obligatorio (3 a 500 caracteres)");
+    }
+    if (typeof altaMedica !== "boolean") {
+      throw datosInvalidos("altaMedica debe ser true o false");
+    }
+  }
+
+  detalle() {
+    const { observaciones, altaMedica } = this.datos;
+    return {
+      observaciones: String(observaciones).trim(),
+      altaMedica
     };
   }
 }
 
 class ProcedimientoFactory {
-  static crear(tipo, params) {
-    switch (String(tipo || "").toLowerCase().trim()) {
+  static crearProcedimiento(tipo, datos) {
+    switch (String(tipo || "").trim()) {
       case "esterilizacion":
-        return new EsterilizacionProcedimiento(params);
+        return new Esterilizacion(datos);
       case "chipeo":
-        return new ChipeoProcedimiento(params);
-      default: {
-        const err = new Error("El tipo de procedimiento debe ser 'esterilizacion' o 'chipeo'");
-        err.status = 400;
-        err.codigo = "TIPO_PROCEDIMIENTO_INVALIDO";
-        throw err;
-      }
+        return new Chipeo(datos);
+      case "control_postoperatorio":
+        return new ControlPostoperatorio(datos);
+      default:
+        throw datosInvalidos("tipo debe ser esterilizacion, chipeo o control_postoperatorio");
     }
+  }
+
+  // Alias por si algún archivo previo invoca ProcedimientoFactory.crear(...)
+  static crear(tipo, datos) {
+    return ProcedimientoFactory.crearProcedimiento(tipo, datos);
   }
 }
 
-module.exports = { ProcedimientoFactory };
+module.exports = {
+  Procedimiento,
+  Esterilizacion,
+  Chipeo,
+  ControlPostoperatorio,
+  ProcedimientoFactory
+};
