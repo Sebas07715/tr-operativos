@@ -1,9 +1,11 @@
+// HU-04 y HU-10 — Rutas de asistencia y procedimientos clínicos — Responsable: Jorge Vallejos
 const express = require("express");
 const mongoose = require("mongoose");
 const Inscripcion = require("../models/Inscripcion");
 const Procedimiento = require("../models/Procedimiento");
 const { requerirPerfil } = require("../middlewares/auth");
 const { ProcedimientoFactory } = require("../services/procedimientoFactory");
+const { confirmarAsistencia } = require("../services/procedimientosService");
 const { enviarError, validarCamposRequeridos } = require("../middlewares/validaciones");
 
 const router = express.Router({ mergeParams: true });
@@ -43,16 +45,39 @@ router.get("/", requerirPerfil(), async (req, res) => {
   }
 });
 
-// HU-04: Registrar asistencia y procedimiento clínico (solo veterinario/admin)
+// HU-04: Confirmar asistencia de la inscripción (funcionario, veterinario o admin)
+router.patch("/asistencia", requerirPerfil(["funcionario", "veterinario", "admin"]), async (req, res) => {
+  try {
+    if (!dbConectada()) {
+      return enviarError(res, 503, "DB_NO_DISPONIBLE", "Base de datos no disponible");
+    }
+
+    const resultado = await confirmarAsistencia({
+      operativoId: req.params.id,
+      inscId: req.params.inscId
+    });
+
+    if (!resultado.ok) {
+      return enviarError(res, resultado.status, resultado.codigo, resultado.mensaje);
+    }
+
+    return res.status(200).json({ id: resultado.datos._id, datos: resultado.datos });
+  } catch {
+    return enviarError(res, 500, "ERROR_ASISTENCIA", "No se pudo confirmar la asistencia");
+  }
+});
+
+// HU-04 y HU-10: Registrar atención clínica y alta médica con Factory Method (veterinario/admin)
 router.post("/", requerirPerfil(["veterinario", "admin"]), async (req, res) => {
   try {
     const { id, inscId } = req.params;
     const faltantes = validarCamposRequeridos(req.body, ["tipo"]);
     if (faltantes.length > 0) {
-      return enviarError(res, 400, "DATOS_INVALIDOS", "El campo 'tipo' es obligatorio (esterilizacion o chipeo)");
+      return enviarError(res, 400, "DATOS_INVALIDOS", "El campo 'tipo' es obligatorio (esterilizacion, chipeo o control_postoperatorio)");
     }
 
     let animalId = String(req.body.animalId || "").trim();
+    const altaMedica = Boolean(req.body.altaMedica || req.body.datosClinicos?.altaMedica);
 
     if (dbConectada()) {
       if (!mongoose.Types.ObjectId.isValid(inscId)) {
@@ -63,11 +88,8 @@ router.post("/", requerirPerfil(["veterinario", "admin"]), async (req, res) => {
       if (!inscripcion) {
         return enviarError(res, 404, "INSCRIPCION_NO_ENCONTRADA", "La inscripción no pertenece a este operativo");
       }
-      if (inscripcion.estado === "cancelado") {
+      if (inscripcion.estado === "cancelado" || inscripcion.estado === "cancelada") {
         return enviarError(res, 409, "INSCRIPCION_CANCELADA", "No se puede atender una inscripción cancelada");
-      }
-      if (inscripcion.estado === "atendido") {
-        return enviarError(res, 409, "PROCEDIMIENTO_YA_REGISTRADO", "Esta inscripción ya tiene atención registrada");
       }
 
       animalId = inscripcion.animalId;
@@ -81,7 +103,26 @@ router.post("/", requerirPerfil(["veterinario", "admin"]), async (req, res) => {
         datosClinicos: req.body.datosClinicos || {}
       });
 
-      const creado = await Procedimiento.create(instancia.construirRegistro());
+      const registro = typeof instancia.construirRegistro === "function"
+        ? instancia.construirRegistro()
+        : {
+            operativoId: id,
+            inscripcionId: inscId,
+            animalId,
+            tipo: req.body.tipo,
+            asistio: true,
+            veterinarioRut: req.usuario.rut,
+            veterinarioNombre: req.usuario.nombre || "",
+            observaciones: String(req.body.observaciones || "").trim(),
+            detalleClinico: req.body.datosClinicos || req.body,
+            fechaAtencion: new Date().toISOString()
+          };
+
+      const creado = await Procedimiento.create({
+        ...registro,
+        altaMedica
+      });
+
       inscripcion.estado = "atendido";
       await inscripcion.save();
 
@@ -96,13 +137,6 @@ router.post("/", requerirPerfil(["veterinario", "admin"]), async (req, res) => {
       return enviarError(res, 400, "DATOS_INVALIDOS", "En modo memoria local debe incluir animalId");
     }
 
-    const yaExisteLocal = procedimientosMemoria.some(
-      (p) => p.operativoId === id && p.inscripcionId === inscId
-    );
-    if (yaExisteLocal) {
-      return enviarError(res, 409, "PROCEDIMIENTO_YA_REGISTRADO", "Esta inscripción ya tiene atención registrada");
-    }
-
     const instancia = ProcedimientoFactory.crear(req.body.tipo, {
       operativoId: id,
       inscripcionId: inscId,
@@ -112,9 +146,25 @@ router.post("/", requerirPerfil(["veterinario", "admin"]), async (req, res) => {
       datosClinicos: req.body.datosClinicos || {}
     });
 
+    const registroLocal = typeof instancia.construirRegistro === "function"
+      ? instancia.construirRegistro()
+      : {
+          operativoId: id,
+          inscripcionId: inscId,
+          animalId,
+          tipo: req.body.tipo,
+          asistio: true,
+          veterinarioRut: req.usuario.rut,
+          veterinarioNombre: req.usuario.nombre || "",
+          observaciones: String(req.body.observaciones || "").trim(),
+          detalleClinico: req.body.datosClinicos || req.body,
+          fechaAtencion: new Date().toISOString()
+        };
+
     const creadoLocal = {
       _id: `proc_${Date.now()}`,
-      ...instancia.construirRegistro(),
+      ...registroLocal,
+      altaMedica,
       createdAt: new Date().toISOString()
     };
     procedimientosMemoria.push(creadoLocal);
