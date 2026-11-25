@@ -1,24 +1,31 @@
 // Interfaz web del Módulo 2 (sesión, operativos, inscripciones y notificaciones) — Responsable: Elian Tapia
 const API = "/api/operativos";
+const NUCLEO_BASE = (window.NUCLEO_URL || "https://nucleo-tr.onrender.com").replace(/\/+$/, "");
 
 const estado = {
   token: localStorage.getItem("tokenOp") || "",
   usuario: JSON.parse(localStorage.getItem("usuarioOp") || "null"),
-  operativoActual: null
+  operativoActual: null,
+  inscripcionesPorOperativo: {}
 };
 
 const $ = (id) => document.getElementById(id);
 
 function mostrarMensaje(texto, esError = false) {
   const msg = $("mensaje");
+  if (!msg) return;
   msg.textContent = texto || "";
   msg.className = esError ? "error" : "ok";
 }
 
-async function pedirApi(ruta, opciones = {}) {
+function normalizarRut(rut = "") {
+  return String(rut).replace(/\./g, "").replace(/\s+/g, "").trim().toLowerCase();
+}
+
+async function pedirApi(ruta, opciones = {}, silenciar404 = false) {
   const headers = {
     "Content-Type": "application/json",
-    ...(options.headers || {})
+    ...(opciones.headers || {})
   };
   if (estado.token) {
     headers.Authorization = `Bearer ${estado.token}`;
@@ -27,7 +34,12 @@ async function pedirApi(ruta, opciones = {}) {
   const resp = await fetch(`${API}${ruta}`, { ...opciones, headers });
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok) {
-    throw new Error(data.mensaje || data.error || "Error en la consulta");
+    if (silenciar404 && resp.status === 404) {
+      return null;
+    }
+    const err = new Error(data.error?.mensaje || data.mensaje || "Error en la consulta");
+    err.status = resp.status;
+    throw err;
   }
   return data;
 }
@@ -35,7 +47,15 @@ async function pedirApi(ruta, opciones = {}) {
 function ajustarPorPerfil() {
   const perfil = estado.usuario?.perfil || "";
   document.querySelectorAll("[data-perfiles]").forEach((sec) => {
-    const permitidos = sec.getAttribute("data-perfiles").split(/\s+/);
+    const permitidos = sec.getAttribute("data-perfiles").split(/\s+/).filter(Boolean);
+    if (
+      perfil === "admin" &&
+      sec.id &&
+      ["formOperativo", "seccionOperativo", "crearOperativo"].some((k) => sec.id.toLowerCase().includes(k))
+    ) {
+      sec.hidden = false;
+      return;
+    }
     sec.hidden = !permitidos.includes(perfil);
   });
 }
@@ -59,15 +79,26 @@ function refrescarPantalla() {
 $("formLogin").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
-    const data = await pedirApi("/sesiones", {
+    const resp = await fetch(`${NUCLEO_BASE}/api/nucleo/sesiones`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         rut: $("rut").value.trim(),
         clave: $("clave").value
       })
     });
+
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      throw new Error(data.error?.mensaje || data.mensaje || "Error al iniciar sesión");
+    }
+
     estado.token = data.token;
-    estado.usuario = data.usuario;
+    estado.usuario = data.usuario || {
+      rut: data.rut,
+      perfil: data.perfil,
+      nombre: data.nombre
+    };
     localStorage.setItem("tokenOp", estado.token);
     localStorage.setItem("usuarioOp", JSON.stringify(estado.usuario));
     mostrarMensaje("Sesión iniciada");
@@ -81,11 +112,21 @@ $("salir").addEventListener("click", () => {
   estado.token = "";
   estado.usuario = null;
   estado.operativoActual = null;
+  estado.inscripcionesPorOperativo = {};
   localStorage.removeItem("tokenOp");
   localStorage.removeItem("usuarioOp");
   mostrarMensaje("Sesión cerrada");
   refrescarPantalla();
 });
+
+function animalYaInscritoEnOperativo(operativoId, animalId) {
+  const inscs = estado.inscripcionesPorOperativo[operativoId] || [];
+  return inscs.some(
+    (i) =>
+      String(i.animalId || "").trim().toLowerCase() === String(animalId || "").trim().toLowerCase() &&
+      ["inscrito", "lista_espera"].includes(String(i.estado || "").toLowerCase())
+  );
+}
 
 // Operativos e inscripciones (HU-07 / HU-08)
 async function cargarOperativos() {
@@ -94,15 +135,15 @@ async function cargarOperativos() {
 
   try {
     const data = await pedirApi("");
-    const lista = data.datos || data.operativos || [];
+    const lista = data.datos || data.items || data.operativos || [];
     const perfil = estado.usuario?.perfil || "";
 
     lista.forEach((op) => {
       const opId = op._id || op.id;
       const li = document.createElement("li");
-      li.innerHTML = `<span>${op.titulo || op.nombre || opId} · Estado: ${op.estado || "abierto"} · Cupos: ${op.cuposDisponibles ?? op.cuposTotales ?? "-"}</span>`;
+      li.innerHTML = `<span>${op.titulo || op.nombre || op.sede || opId} · Estado: ${op.estado || "abierto"} · Cupos: ${op.cuposDisponibles ?? op.cuposTotales ?? "-"}</span>`;
 
-      if (["vecino", "comunitario", "funcionario"].includes(perfil)) {
+      if (["vecino", "comunitario"].includes(perfil)) {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.textContent = "Inscribir";
@@ -126,10 +167,19 @@ async function cargarOperativos() {
 }
 
 async function inscribir(operativoId) {
+  const perfil = estado.usuario?.perfil || "";
+  if (!["vecino", "comunitario"].includes(perfil)) {
+    return mostrarMensaje("Tu rol no tiene permiso para inscribir animales", true);
+  }
+
   const animalId = $("animalId").value.trim();
   const tipoProcedimiento = $("tipo").value;
   if (!animalId) {
-    return mostrarMensaje("Ingresa el ID del animal", true);
+    return mostrarMensaje("Ingresa el SIM del animal", true);
+  }
+
+  if (animalYaInscritoEnOperativo(operativoId, animalId)) {
+    return mostrarMensaje(`El animal ${animalId} ya está inscrito en este operativo`, true);
   }
 
   try {
@@ -138,8 +188,9 @@ async function inscribir(operativoId) {
       body: JSON.stringify({ animalId, tipoProcedimiento })
     });
     mostrarMensaje(`Inscripción ${data.datos?.estado || "registrada"}`);
-    cargarOperativos();
-    cargarMisInscripciones();
+    await cargarMisInscripciones();
+    await cargarOperativos();
+    await cargarNotificaciones();
   } catch (err) {
     mostrarMensaje(err.message, true);
   }
@@ -152,22 +203,25 @@ async function cargarMisInscripciones() {
 
   try {
     const opsData = await pedirApi("");
-    const ops = opsData.datos || opsData.operativos || [];
+    const ops = opsData.datos || opsData.items || opsData.operativos || [];
+    const miRut = normalizarRut(estado.usuario.rut);
 
     for (const op of ops) {
       const opId = op._id || op.id;
-      const insData = await pedirApi(`/${opId}/inscripciones`);
-      const mias = (insData.datos || []).filter((i) => i.tutorRut === estado.usuario.rut);
+      const insData = await pedirApi(`/${opId}/inscripciones`, {}, true);
+      const listaIns = insData?.datos || insData?.items || insData?.inscripciones || [];
+      const mias = listaIns.filter((i) => normalizarRut(i.tutorRut) === miRut);
+      estado.inscripcionesPorOperativo[opId] = mias;
 
       mias.forEach((ins) => {
         const li = document.createElement("li");
         li.innerHTML = `<span>Operativo ${opId} · Animal ${ins.animalId} · Estado: ${ins.estado}</span>`;
 
-        if (["confirmada", "en_espera"].includes(ins.estado)) {
+        if (["inscrito", "lista_espera"].includes(ins.estado)) {
           const btnCancel = document.createElement("button");
           btnCancel.type = "button";
           btnCancel.textContent = "Cancelar";
-          btnCancel.addEventListener("click", () => cancelar(opId, ins._id || ins.id));
+          btnCancel.addEventListener("click", () => cancelar(opId, ins._id || ins.id, ins.tutorRut));
           li.appendChild(btnCancel);
         }
 
@@ -179,27 +233,47 @@ async function cargarMisInscripciones() {
   }
 }
 
-async function cancelar(operativoId, inscId) {
+async function cancelar(operativoId, inscId, tutorRut = "") {
+  const perfil = estado.usuario?.perfil || "";
+  const esDuenio = tutorRut && normalizarRut(tutorRut) === normalizarRut(estado.usuario?.rut || "");
+
+  if (["vecino", "comunitario"].includes(perfil) && !esDuenio) {
+    return mostrarMensaje("Solo puedes cancelar inscripciones de tu propio animal", true);
+  }
+  if (!["vecino", "comunitario", "admin"].includes(perfil)) {
+    return mostrarMensaje("Tu rol no tiene permiso para cancelar inscripciones", true);
+  }
+
   try {
     await pedirApi(`/${operativoId}/inscripciones/${inscId}/cancelar`, {
       method: "PATCH"
     });
     mostrarMensaje("Inscripción cancelada");
-    cargarMisInscripciones();
-    cargarNotificaciones();
+    if (["vecino", "comunitario"].includes(perfil)) {
+      await cargarMisInscripciones();
+    }
+    if (estado.operativoActual) {
+      await cargarInscripcionesOperativo(estado.operativoActual);
+    }
+    await cargarOperativos();
+    await cargarNotificaciones();
   } catch (err) {
-    mostrarMensaje(err.message, true);
+    mostrarMensaje(err.message || "No se pudo cancelar la inscripción", true);
   }
 }
 
 // Notificaciones (HU-03)
 async function cargarNotificaciones() {
+  if (!["vecino", "comunitario"].includes(estado.usuario?.perfil || "")) return;
   const ul = $("listaNotificaciones");
+  if (!ul) return;
   ul.innerHTML = "";
 
   try {
-    const data = await pedirApi("/notificaciones");
-    (data.datos || []).forEach((n) => {
+    const data = await pedirApi("/notificaciones", {}, true);
+    if (!data) return;
+    const listaNotif = data.datos || data.items || data.notificaciones || [];
+    listaNotif.forEach((n) => {
       const li = document.createElement("li");
       li.innerHTML = `<span>${n.mensaje} ${n.leida ? "(leída)" : ""}</span>`;
       if (!n.leida) {
@@ -207,7 +281,7 @@ async function cargarNotificaciones() {
         btn.type = "button";
         btn.textContent = "Marcar leída";
         btn.addEventListener("click", async () => {
-          await pedirApi(`/notificaciones/${n._id || n.id}/leer`, { method: "PATCH" });
+          await pedirApi(`/notificaciones/${n._id || n.id}/leer`, { method: "PATCH" }, true);
           cargarNotificaciones();
         });
         li.appendChild(btn);
@@ -221,16 +295,21 @@ async function cargarNotificaciones() {
 
 // Catálogos y creación de operativo
 async function cargarCatalogos() {
-  if (estado.usuario?.perfil !== "funcionario") return;
+  if (!["funcionario", "admin"].includes(estado.usuario?.perfil || "")) return;
   try {
-    const data = await pedirApi("/catalogos");
+    const data = await pedirApi("/catalogos", {}, true);
+    if (!data) return;
     const sedes = data.sedes || data.datos?.sedes || [];
     const especies = data.especies || data.datos?.especies || ["canino", "felino"];
 
-    $("sedeId").innerHTML = sedes.map((s) => `<option value="${s.id || s._id}">${s.nombre || s.id}</option>`).join("");
-    $("especies").innerHTML = especies.map((e) => `<option value="${e}">${e}</option>`).join("");
+    if ($("sedeId") && sedes.length > 0) {
+      $("sedeId").innerHTML = sedes.map((s) => `<option value="${s.id || s._id}">${s.nombre || s.id}</option>`).join("");
+    }
+    if ($("especies")) {
+      $("especies").innerHTML = especies.map((e) => `<option value="${e}">${e}</option>`).join("");
+    }
   } catch {
-    if (!$("especies").options.length) {
+    if ($("especies") && !$("especies").options.length) {
       $("especies").innerHTML = `<option value="canino">canino</option><option value="felino">felino</option>`;
     }
   }
@@ -238,6 +317,9 @@ async function cargarCatalogos() {
 
 $("formOperativo").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (!["funcionario", "admin"].includes(estado.usuario?.perfil || "")) {
+    return mostrarMensaje("Solo el perfil funcionario o admin puede crear operativos", true);
+  }
   try {
     const especies = Array.from($("especies").selectedOptions).map((o) => o.value);
     const bloquesHorarios = $("bloques").value.split(",").map((b) => b.trim()).filter(Boolean);
@@ -245,8 +327,10 @@ $("formOperativo").addEventListener("submit", async (e) => {
     await pedirApi("", {
       method: "POST",
       body: JSON.stringify({
-        sedeId: $("sedeId").value,
+        sede: $("sedeId")?.value || "Sede Central",
+        sedeId: $("sedeId")?.value,
         especies,
+        especiesAtendidas: especies,
         fechaInicio: $("fechaInicio").value,
         fechaTermino: $("fechaTermino").value,
         cuposTotales: Number($("cupos").value),
@@ -261,8 +345,13 @@ $("formOperativo").addEventListener("submit", async (e) => {
   }
 });
 
-// Listado de inscripciones para gestión y clínica
+// Listado de inscripciones para gestión, supervisión y clínica
 async function cargarInscripcionesOperativo(operativoId) {
+  const perfil = estado.usuario?.perfil || "";
+  if (["vecino", "comunitario"].includes(perfil)) {
+    return cargarMisInscripciones();
+  }
+
   estado.operativoActual = operativoId;
   $("tituloInscripciones").textContent = `Inscripciones del operativo ${operativoId}`;
   const ul = $("listaInscripciones");
@@ -270,14 +359,14 @@ async function cargarInscripcionesOperativo(operativoId) {
 
   try {
     const data = await pedirApi(`/${operativoId}/inscripciones`);
-    const perfil = estado.usuario?.perfil || "";
+    const listaIns = data.datos || data.items || data.inscripciones || [];
 
-    (data.datos || []).forEach((ins) => {
+    listaIns.forEach((ins) => {
       const inscId = ins._id || ins.id;
       const li = document.createElement("li");
       li.innerHTML = `<span>${inscId} · Animal: ${ins.animalId} · Tutor: ${ins.tutorRut} · Estado: ${ins.estado}</span>`;
 
-      if (["funcionario", "veterinario", "admin"].includes(perfil)) {
+      if (["funcionario", "veterinario"].includes(perfil)) {
         const btnAsistio = document.createElement("button");
         btnAsistio.type = "button";
         btnAsistio.textContent = "Asistió";
@@ -289,6 +378,14 @@ async function cargarInscripcionesOperativo(operativoId) {
         btnFalta.textContent = "No asistió";
         btnFalta.addEventListener("click", () => marcarInasistencia(operativoId, inscId));
         li.appendChild(btnFalta);
+      }
+
+      if (perfil === "admin" && ["inscrito", "lista_espera"].includes(ins.estado)) {
+        const btnCancelarAdmin = document.createElement("button");
+        btnCancelarAdmin.type = "button";
+        btnCancelarAdmin.textContent = "Cancelar";
+        btnCancelarAdmin.addEventListener("click", () => cancelar(operativoId, inscId, ins.tutorRut));
+        li.appendChild(btnCancelarAdmin);
       }
 
       if (perfil === "veterinario") {
@@ -331,6 +428,9 @@ async function marcarInasistencia(operativoId, inscId) {
 // Registro de procedimiento clínico (HU-10)
 $("formProcedimiento").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (estado.usuario?.perfil !== "veterinario") {
+    return mostrarMensaje("Solo el perfil veterinario puede registrar procedimientos", true);
+  }
   if (!estado.operativoActual) {
     return mostrarMensaje("Selecciona primero un operativo con 'Ver inscripciones'", true);
   }

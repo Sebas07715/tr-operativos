@@ -20,6 +20,10 @@ function dbConectada() {
   return mongoose.connection.readyState === 1;
 }
 
+function normalizarRut(rut = "") {
+  return String(rut).replace(/\./g, "").replace(/\s+/g, "").trim().toLowerCase();
+}
+
 router.get("/", requerirPerfil(), async (req, res) => {
   try {
     const { id } = req.params;
@@ -149,6 +153,76 @@ router.post(
       return res.status(201).json({ id: creadaLocal._id, datos: creadaLocal });
     } catch {
       return enviarError(res, 500, "ERROR_INSCRIBIR", "No se pudo procesar la inscripción");
+    }
+  }
+);
+
+router.patch(
+  "/:inscId/cancelar",
+  requerirPerfil(["vecino", "comunitario", "admin"]),
+  async (req, res) => {
+    try {
+      const { id, inscId } = req.params;
+      const perfil = req.usuario?.perfil || "";
+
+      if (dbConectada()) {
+        if (!mongoose.Types.ObjectId.isValid(inscId)) {
+          return enviarError(res, 404, "INSCRIPCION_NO_ENCONTRADA", "La inscripción no existe");
+        }
+        const insc = await Inscripcion.findOne({ _id: inscId, operativoId: id });
+        if (!insc) {
+          return enviarError(res, 404, "INSCRIPCION_NO_ENCONTRADA", "La inscripción no existe");
+        }
+        if (
+          ["vecino", "comunitario"].includes(perfil) &&
+          normalizarRut(insc.tutorRut) !== normalizarRut(req.usuario.rut)
+        ) {
+          return enviarError(res, 403, "PROHIBIDO", "Solo puedes cancelar inscripciones de tu propio animal");
+        }
+        if (!["inscrito", "lista_espera"].includes(insc.estado)) {
+          return enviarError(
+            res,
+            409,
+            "ESTADO_NO_CANCELABLE",
+            "La inscripción no se puede cancelar en su estado actual"
+          );
+        }
+
+        const estadoAnterior = insc.estado;
+        insc.estado = "cancelado";
+        await insc.save();
+
+        if (estadoAnterior === "inscrito" && mongoose.Types.ObjectId.isValid(id)) {
+          await Operativo.findByIdAndUpdate(id, { $inc: { cuposDisponibles: 1 } });
+        }
+
+        return res.status(200).json({ datos: insc });
+      }
+
+      const idx = inscripcionesMemoria.findIndex((i) => i._id === inscId && i.operativoId === id);
+      if (idx === -1) {
+        return enviarError(res, 404, "INSCRIPCION_NO_ENCONTRADA", "La inscripción no existe");
+      }
+      const insc = inscripcionesMemoria[idx];
+      if (
+        ["vecino", "comunitario"].includes(perfil) &&
+        normalizarRut(insc.tutorRut) !== normalizarRut(req.usuario.rut)
+      ) {
+        return enviarError(res, 403, "PROHIBIDO", "Solo puedes cancelar inscripciones de tu propio animal");
+      }
+      if (!["inscrito", "lista_espera"].includes(insc.estado)) {
+        return enviarError(
+          res,
+          409,
+          "ESTADO_NO_CANCELABLE",
+          "La inscripción no se puede cancelar en su estado actual"
+        );
+      }
+
+      insc.estado = "cancelado";
+      return res.status(200).json({ datos: insc });
+    } catch {
+      return enviarError(res, 500, "ERROR_CANCELAR_INSCRIPCION", "No se pudo cancelar la inscripción");
     }
   }
 );
