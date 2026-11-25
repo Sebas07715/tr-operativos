@@ -271,8 +271,15 @@ async function cargarNotificaciones() {
 
   try {
     const data = await pedirApi("/notificaciones", {}, true);
-    if (!data) return;
-    const listaNotif = data.datos || data.items || data.notificaciones || [];
+    const listaNotif = data?.datos || data?.items || data?.notificaciones || [];
+
+    if (!listaNotif.length) {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>Sin notificaciones por el momento.</span>`;
+      ul.appendChild(li);
+      return;
+    }
+
     listaNotif.forEach((n) => {
       const li = document.createElement("li");
       li.innerHTML = `<span>${n.mensaje} ${n.leida ? "(leída)" : ""}</span>`;
@@ -289,7 +296,9 @@ async function cargarNotificaciones() {
       ul.appendChild(li);
     });
   } catch {
-    // Sin notificaciones aún
+    const li = document.createElement("li");
+    li.innerHTML = `<span>Sin notificaciones por el momento.</span>`;
+    ul.appendChild(li);
   }
 }
 
