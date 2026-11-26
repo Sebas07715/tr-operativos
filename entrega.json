@@ -1,10 +1,10 @@
 {
-"seccion": "IEI-C2", 
+"seccion": "TI3043-IEI-C2-M2", 
 "modulo": 2, 
-"grupo": "G03", 
-"prototipo": "https://adopciones-tr.onrender.com", 
-"repositorio": "https://github.com/usuario/tr-adopciones", 
-"taiga": "https://tree.taiga.io/project/ti3043-iei-c2-m3", 
+"grupo": "G02", 
+"prototipo": "https://tr-operativos.onrender.com", 
+"repositorio": "https://github.com/Sebas07715/tr-operativos", 
+"taiga": "https://tree.taiga.io/project/cristianb-ti3043-iei-c2-m2/timeline", 
 "integrantes": [ 
   { "nombre": "Sebastián Brito López", "github": "Sebas07715", "taiga": "Sebastian_Brito", "rol": "Arquitecto" },
   { "nombre": "Elian Tapia", "github": "ElianT142", "taiga": "ElianT", "rol": "analista" },
@@ -18,23 +18,26 @@
     "id": "HU-01", 
     "titulo": "Como funcionario, quiero que el sistema consulte en tiempo real al estado del animal en la API, para comprobar el estado de la API", 
     "responsable": "ElianT142", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "funcionario", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
+    "verificacion": {
+      "metodo": "GET",
+      "ruta": "/api/operativos/animales/SIM-000001",
+      "perfil": "funcionario",
+      "cuerpo": {},
+      "esperado": 200
     } 
   },
   { 
 "id": "HU-02", 
     "titulo": "Como vecino, quiero que al realizar una solicitud de inscripción a un operativo con límite de cupos alcanzados se registe mi solicitud en la lista de espera, para lograr que mi solicitud no se pierda.", 
     "responsable": "CrisitanBe", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/operativos/postulaciones", 
-      "perfil": "vecino", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
+    "verificacion": {
+      "metodo": "POST",
+      "ruta": "/api/operativos/:id/inscripciones",
+      "perfil": "vecino",
+      "cuerpo": {
+        "animalId": "SIM-000001",
+        "tipoProcedimiento": "esterilizacion"
+      }, 
       "esperado": 201 
     } 
   },
@@ -42,95 +45,110 @@
     "id": "HU-03", 
     "titulo": "Como vecino, quiero recibir notificaciones, para ser notificado por el estado de mi cupo", 
     "responsable": "Tamara_ToT", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
-    } 
+    "verificacion": {
+      "metodo": "GET",
+      "ruta": "/api/operativos/notificaciones",
+      "perfil": "vecino",
+      "cuerpo": {},
+      "esperado": 200
+    }
   } 
   ,
   { 
     "id": "HU-04", 
     "titulo": "Como funcionario, quiero que el sistema me permita gestionar los cupos y confirmar asistencia, para que el veterinario registre resultados clínicos de la atención.", 
     "responsable": "JorgeVallejos14", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "funcionario", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
+    "verificacion": {
+      "metodo": "PATCH",
+      "ruta": "/api/operativos/:id/inscripciones/:inscId/procedimiento/asistencia",
+      "perfil": "funcionario",
+      "cuerpo": {},
+      "esperado": 200
     } 
   } ,
   { 
     "id": "HU-05", 
     "titulo": "Como funcionario, quiero que el sistema me restrinja las acciones según mi rol y el del usuario, para asegurar que solo los usuarios autorizados realicen acciones de confirmación, gestión y supervisión.", 
     "responsable": "Sebas07715, ElianT142, JorgeVallejos14, TamaraToT, CrisitanBe", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino, funcionario",
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
+    "verificacion": {
+      "metodo": "POST",
+      "ruta": "/api/operativos",
+      "perfil": "vecino",
+      "cuerpo": {
+        "sede": "Sede Central",
+        "cuposTotales": 10
+      }, 
+      "esperado": 403
     } 
   } ,
   { 
     "id": "HU-06", 
     "titulo": "Como funcionario, quiero registrar operativos de esterilización y chipeo incluyendo fecha, lugar, cupos, especies y bloques horarios, para organizar y gestionar la atención de las mascotas de la comuna", 
     "responsable": "Sebas07715", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "funcionario", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
+    "verificacion": {
+      "metodo": "POST",
+      "ruta": "/api/operativos",
+      "perfil": "funcionario",
+      "cuerpo": {
+        "sede": "Sede Central",
+        "especies": ["canino", "felino"],
+        "cuposTotales": 20
+      }, 
       "esperado": 201 
     } 
   } ,
   { 
-"id": "HU-07", 
+    "id": "HU-07", 
     "titulo": "Como vecino quiero poder registrarme en un operativo para atender a mi mascota.", 
     "responsable": "CrisitanBe", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/operativos/postulaciones", 
-      "perfil": "vecino", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
+    "verificacion": {
+      "metodo": "POST",
+      "ruta": "/api/operativos/:id/inscripciones",
+      "perfil": "vecino",
+      "cuerpo": {
+        "animalId": "SIM-000001",
+        "tipoProcedimiento": "esterilizacion"
+      }, 
       "esperado": 201 
     } 
   } ,
   { 
-"id": "HU-08", 
+    "id": "HU-08", 
     "titulo": "Como vecino quiero poder cancelar una inscripción activa, para cumplir el acuerdo de políticas de plazo.", 
     "responsable": "CrisitanBe", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/operativos/postulaciones", 
-      "perfil": "vecino", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
-    } 
-  } ,{ 
+    "verificacion": {
+      "metodo": "PATCH",
+      "ruta": "/api/operativos/:id/inscripciones/:inscId/cancelar",
+      "perfil": "vecino",
+      "cuerpo": {},
+      "esperado": 200
+    }
+  } ,
+  { 
     "id": "HU-09", 
     "titulo": "Como funcionario quiero que los responsables con faltas reiteradas queden bloqueados del módulo 2, para evitar que se desperdicien cupos en futuros operativos.", 
     "responsable": "ElianT142", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "funcionario", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
+    "verificacion": {
+      "metodo": "GET",
+      "ruta": "/api/operativos/bloqueos/:rut",
+      "perfil": "funcionario",
+      "cuerpo": {},
+      "esperado": 200
     } 
   },
   { 
     "id": "HU-10", 
     "titulo": "Como veterinario, quiero registrar las observaciones postoperatorias y asignar medicación tras una esterilización, para llevar el control operativo y dar la alta médica al animal.", 
     "responsable": "JorgeVallejos14", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "veterinario", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
+    "verificacion": {
+      "metodo": "POST",
+      "ruta": "/api/operativos/:id/inscripciones/:inscId/procedimiento",
+      "perfil": "veterinario",
+      "cuerpo": {
+        "tipo": "esterilizacion",
+        "observaciones": "Sin complicaciones",
+        "altaMedica": true
+      }, 
       "esperado": 201 
     } 
   } ,
@@ -138,24 +156,24 @@
     "id": "HU-11", 
     "titulo": "Como funcionario, quiero que el sistema verifique si una mascota ya esta identificada mediante la API del módulo 1, para evitar realizar una nueva identificación innecesaria", 
     "responsable": "Tamara_ToT", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "vecino", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
+    "verificacion": {
+      "metodo": "GET",
+      "ruta": "/api/operativos/animales/SIM-000001",
+      "perfil": "funcionario",
+      "cuerpo": {},
+      "esperado": 200
     } 
   } ,
   { 
     "id": "HU-12", 
     "titulo": "Como funcionario, quiero registrar cuando una mascota no asiste al operativo, para mantener actualizado el control de asistencia", 
     "responsable": "Sebas07715", 
-    "verificacion": { 
-      "metodo": "POST", 
-      "ruta": "/api/adopciones/postulaciones", 
-      "perfil": "funcionario", 
-      "cuerpo": { "animalId": "SIM-000001" }, 
-      "esperado": 201 
+    "verificacion": {
+      "metodo": "PATCH",
+      "ruta": "/api/operativos/:id/inscripciones/:inscId/inasistencia",
+      "perfil": "funcionario",
+      "cuerpo": {},
+      "esperado": 200 
     } 
   } 
 ] 
