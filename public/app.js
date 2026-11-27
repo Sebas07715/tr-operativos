@@ -305,21 +305,55 @@ async function cargarNotificaciones() {
 // Catálogos y creación de operativo
 async function cargarCatalogos() {
   if (!["funcionario", "admin"].includes(estado.usuario?.perfil || "")) return;
-  try {
-    const data = await pedirApi("/catalogos", {}, true);
-    if (!data) return;
-    const sedes = data.sedes || data.datos?.sedes || [];
-    const especies = data.especies || data.datos?.especies || ["canino", "felino"];
 
-    if ($("sedeId") && sedes.length > 0) {
-      $("sedeId").innerHTML = sedes.map((s) => `<option value="${s.id || s._id}">${s.nombre || s.id}</option>`).join("");
+  const sedesRespaldo = [
+    { id: "Sede Norte Antofagasta", nombre: "Sede Norte Antofagasta" },
+    { id: "Sede Sur Antofagasta", nombre: "Sede Sur Antofagasta" },
+    { id: "Sede Central", nombre: "Sede Central" }
+  ];
+  const especiesRespaldo = ["canino", "felino"];
+
+  try {
+    const [sedesResp, especiesResp] = await Promise.all([
+      pedirApi("/catalogos/sedes", {}, true),
+      pedirApi("/catalogos/especies", {}, true)
+    ]);
+
+    const rawSedes = sedesResp?.datos || sedesResp?.items || sedesResp?.sedes || [];
+    const rawEspecies = especiesResp?.datos || especiesResp?.items || especiesResp?.especies || [];
+
+    const sedes = Array.isArray(rawSedes) && rawSedes.length ? rawSedes : sedesRespaldo;
+    const especies = Array.isArray(rawEspecies) && rawEspecies.length ? rawEspecies : especiesRespaldo;
+
+    if ($("sedeId")) {
+      $("sedeId").innerHTML = sedes
+        .map((s) => {
+          const val = s.codigo || s.nombre || s.id || s._id;
+          const label = s.nombre || s.codigo || s.id;
+          return `<option value="${val}">${label}</option>`;
+        })
+        .join("");
     }
+
     if ($("especies")) {
-      $("especies").innerHTML = especies.map((e) => `<option value="${e}">${e}</option>`).join("");
+      $("especies").innerHTML = especies
+        .map((e) => {
+          const val = typeof e === "string" ? e : (e.codigo || e.nombre || e.id);
+          const label = typeof e === "string" ? e : (e.nombre || e.codigo || e.id);
+          return `<option value="${val}">${label}</option>`;
+        })
+        .join("");
     }
   } catch {
-    if ($("especies") && !$("especies").options.length) {
-      $("especies").innerHTML = `<option value="canino">canino</option><option value="felino">felino</option>`;
+    if ($("sedeId")) {
+      $("sedeId").innerHTML = sedesRespaldo
+        .map((s) => `<option value="${s.id}">${s.nombre}</option>`)
+        .join("");
+    }
+    if ($("especies")) {
+      $("especies").innerHTML = especiesRespaldo
+        .map((e) => `<option value="${e}">${e}</option>`)
+        .join("");
     }
   }
 }
